@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-func main() {
-	myFile, err := os.Open("/Users/juliarosenson/Documents/aoc24/day1.txt")
+func day1() {
+	myFile, err := os.Open("input/day1.txt")
 	if err != nil {
 		fmt.Printf("impossible to open file: %s", err)
 	}
