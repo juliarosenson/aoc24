@@ -6,214 +6,76 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 var (
-	r, _ = regexp.Compile("[0-9.]")
+	re  = regexp.MustCompile(`mul\((\d{1,3}),(\d{1,3})\)`)
+	re2 = regexp.MustCompile(`(\d{1,3})`)
+
+	re3 = regexp.MustCompile(`mul\((\d{1,3}),(\d{1,3})\)|do\(\)|don't\(\)`)
 )
 
 func day3() {
-	myFile, err := os.Open("input/day3.txt")
-	if err != nil {
-		// fmt.Printf("impossible to open file: %s", err)
-	}
+	day3part1()
+	day3part2()
+}
 
-	scanner := bufio.NewScanner(myFile)
-	puzzle := make([][]string, 0)
+func day3part1() {
+	file, err := os.Open("input/day3.txt")
+	if err != nil {
+		fmt.Printf("unable to open file: %s", err)
+	}
+	scanner := bufio.NewScanner(file)
+	sum := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		puzzle = append(puzzle, strings.Split(line, ""))
+		muls := re.FindAllString(line, -1)
+		for _, s := range muls {
+			nums := re2.FindAllString(s, -1)
+
+			n1, _ := strconv.Atoi(nums[0])
+			n2, _ := strconv.Atoi(nums[1])
+
+			sum += n1 * n2
+		}
+
 	}
 	err = scanner.Err()
 	if err != nil {
-		// fmt.Printf("scanner encountered an err: %s", err)
-	}
-
-	day3part1(puzzle)
-}
-
-func day3part1(puzzle [][]string) {
-	sum := 0
-	for i, row := range puzzle {
-		for j, col := range row {
-			if !r.MatchString(col) {
-				fmt.Println("not a number", i*10+j, puzzle[i][j])
-				sum += getAdjacentNumsSum(i, j, len(puzzle), len(col), &puzzle)
-			}
-		}
+		fmt.Printf("scanner encountered an err: %s", err)
 	}
 
 	fmt.Println(sum)
+}
 
-	file, err := os.Create("puzzle-out.txt")
+func day3part2() {
+	file, err := os.Open("input/day3.txt")
 	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return
+		fmt.Printf("unable to open file: %s", err)
 	}
-	defer file.Close()
 
-	writer := bufio.NewWriter(file)
+	scanner := bufio.NewScanner(file)
+	sum := 0
+	do := true
+	for scanner.Scan() {
+		line := scanner.Text()
+		vals := re3.FindAllString(line, -1)
+		for _, val := range vals {
+			if val == "do()" {
+				do = true
+			}
 
-	for _, line := range puzzle {
-		_, err := writer.WriteString(strings.Join(line, "") + "\n")
-		if err != nil {
-			fmt.Println("Error writing to file:", err)
-			return
+			if val == "don't()" {
+				do = false
+			}
+			nums := re2.FindAllString(val, -1)
+			if do && len(nums) == 2 {
+				n1, _ := strconv.Atoi(nums[0])
+				n2, _ := strconv.Atoi(nums[1])
+
+				sum += n1 * n2
+			}
 		}
 	}
-
-	writer.Flush()
-	fmt.Println("File written successfully.")
-
+	fmt.Println(sum)
 }
-
-func getAdjacentNumsSum(i int, j int, rowMax int, colMax int, puzzle *[][]string) (sum int) {
-	sum = 0
-	fmt.Println(("checking adjacent nums for"), i, j, (*puzzle)[i][j])
-	sum += checkTopLeftCorner(i, j, rowMax, colMax, puzzle)
-	fmt.Println("sum after top left", sum)
-	sum += checkTop(i, j, rowMax, colMax, puzzle)
-	fmt.Println("sum after top", sum)
-	sum += checkTopRightCorner(i, j, rowMax, colMax, puzzle)
-	fmt.Println("sum after top right", sum)
-	sum += checkLeft(i, j, rowMax, colMax, puzzle)
-	fmt.Println("sum after left", sum)
-	sum += checkRight(i, j, rowMax, colMax, puzzle)
-	fmt.Println("sum after right", sum)
-	sum += checkBottomLeftCorner(i, j, rowMax, colMax, puzzle)
-	fmt.Println("sum after bottom left", sum)
-	sum += checkBottom(i, j, rowMax, colMax, puzzle)
-	fmt.Println("sum after bottom", sum)
-	sum += checkBottomRightCorner(i, j, rowMax, colMax, puzzle)
-	fmt.Println("sum after bottom right", sum)
-
-	return sum
-}
-
-func checkTopLeftCorner(i int, j int, rowMax int, colMax int, puzzle *[][]string) int {
-	if i == 0 || j == 0 {
-		return 0
-	}
-
-	if _, ok := strconv.Atoi((*puzzle)[i-1][j-1]); ok == nil {
-		return getNumber(i-1, j-1, puzzle)
-	}
-
-	return 0
-}
-
-func checkTop(i int, j int, rowMax int, colMax int, puzzle *[][]string) int {
-	if i == 0 {
-		return 0
-	}
-
-	if _, ok := strconv.Atoi((*puzzle)[i-1][j]); ok == nil {
-		return getNumber(i-1, j, puzzle)
-	}
-
-	return 0
-}
-
-func checkTopRightCorner(i int, j int, rowMax int, colMax int, puzzle *[][]string) int {
-	if i == 0 || j == colMax {
-		return 0
-	}
-
-	if _, ok := strconv.Atoi((*puzzle)[i-1][j+1]); ok == nil {
-		return getNumber(i-1, j+1, puzzle)
-	}
-
-	return 0
-}
-
-func checkLeft(i int, j int, rowMax int, colMax int, puzzle *[][]string) int {
-	if j == 0 {
-		return 0
-	}
-
-	if _, ok := strconv.Atoi((*puzzle)[i][j-1]); ok == nil {
-		return getNumber(i, j-1, puzzle)
-	}
-
-	return 0
-}
-
-func checkRight(i int, j int, rowMax int, colMax int, puzzle *[][]string) int {
-	if j == colMax {
-		return 0
-	}
-
-	if _, ok := strconv.Atoi((*puzzle)[i][j+1]); ok == nil {
-		return getNumber(i, j+1, puzzle)
-	}
-
-	return 0
-}
-
-func checkBottomLeftCorner(i int, j int, rowMax int, colMax int, puzzle *[][]string) int {
-	if i == rowMax || j == 0 {
-		return 0
-	}
-
-	if _, ok := strconv.Atoi((*puzzle)[i+1][j-1]); ok == nil {
-		return getNumber(i+1, j-1, puzzle)
-	}
-
-	return 0
-}
-
-func checkBottom(i int, j int, rowMax int, colMax int, puzzle *[][]string) int {
-	if i == rowMax {
-		fmt.Println("bottom")
-		return 0
-	}
-
-	if _, ok := strconv.Atoi((*puzzle)[i+1][j]); ok == nil {
-		return getNumber(i+1, j, puzzle)
-	}
-
-	return 0
-}
-func checkBottomRightCorner(i int, j int, rowMax int, colMax int, puzzle *[][]string) int {
-	if i == rowMax || j == colMax {
-		return 0
-	}
-
-	// fmt.Println("checking bottom right corner", i, j, rowMax, colMax)
-	if _, ok := strconv.Atoi((*puzzle)[i+1][j+1]); ok == nil {
-		return getNumber(i+1, j+1, puzzle)
-	}
-
-	return 0
-}
-
-func getNumber(i int, j int, puzzle *[][]string) int {
-	numStr := ""
-	// travers left til we hit non number
-	for j >= 0 {
-		if _, ok := strconv.Atoi((*puzzle)[i][j]); ok == nil {
-			j--
-		} else {
-			break
-		}
-	}
-	j++
-	// traverse right til we hit non number
-	for j < len((*puzzle)[i]) {
-		if _, ok := strconv.Atoi((*puzzle)[i][j]); ok == nil {
-			numStr += (*puzzle)[i][j]
-			(*puzzle)[i][j] = "."
-			j++
-		} else {
-			break
-		}
-	}
-
-	num, _ := strconv.Atoi(numStr)
-
-	fmt.Println("found num", num)
-	return num
-}
-
-//553073 too low
