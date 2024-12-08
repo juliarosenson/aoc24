@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	day6()
+	day7part2()
 }
 
 func printPuzzle(puzzle [][]string) {
