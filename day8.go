@@ -1,6 +1,7 @@
 package main
 
 import (
+	"aoc24/utils"
 	"bufio"
 	"fmt"
 	"os"
@@ -77,7 +78,7 @@ func day8part1(iMax int, jMax int, freqToLoc map[string][][]int, locToFreq map[s
 	}
 
 	fmt.Println("ans:", ans)
-	printPuzzle(puzzle)
+	utils.WritePuzzle(puzzle)
 }
 
 func getDistances(i int, j int, locations [][]int) [][]int {
