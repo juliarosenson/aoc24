@@ -68,3 +68,12 @@ func WriteAnswer(ans []any, fileName string) {
 	writer.Flush()
 	fmt.Println("File written successfully.")
 }
+
+func Contains(arr []int, s int) bool {
+	for _, a := range arr {
+		if a == s {
+			return true
+		}
+	}
+	return false
+}
